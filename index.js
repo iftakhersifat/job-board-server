@@ -32,6 +32,7 @@ async function run() {
 
     // get jobs collection from mongoDB
     const jobsCollection = client.db('jobBoard').collection('job')
+    const applicationCollection = client.db('jobBoard').collection('applications')
     
     // jobs api
     app.get('/jobs', async (req, res)=>{
@@ -45,6 +46,21 @@ async function run() {
         const query = {_id : new ObjectId(id)}
         const result = await jobsCollection.findOne(query);
         res.send(result);
+    })
+
+    // job apply (application)
+    app.post("/applications", async(req, res)=>{
+        const application = req.body;
+        const result = await applicationCollection.insertOne(application);
+        res.send(result);
+    })
+
+    // application j gula mongoDB te send korce segula server e show koraite cai
+    app.get("/applications", async(req, res)=>{
+        const email = req.query.email;
+        const query = { applicant: email }; 
+        const result = await applicationCollection.find(query).toArray(); 
+        res.send(result)
     })
 
 
