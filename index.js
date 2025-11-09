@@ -60,6 +60,21 @@ async function run() {
         const email = req.query.email;
         const query = { applicant: email }; 
         const result = await applicationCollection.find(query).toArray(); 
+        // add data from application collection
+      for (const application of result) {
+    const jobId = application.id; 
+    const job = await jobsCollection.findOne({ _id: new ObjectId(jobId) });
+    
+    if (job) {
+      application.company = job.company;
+      application.title = job.title;
+      application.company_logo = job.company_logo;
+      application.location = job.location;
+      application.jobType = job.jobType;
+      application.category = job.category;
+      application.status = job.status;
+    }
+  }
         res.send(result)
     })
 
