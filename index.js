@@ -80,6 +80,16 @@ async function run() {
 
 
 
+    // add job j gula sever e pathabo 
+    app.post('/jobs', async(req, res)=>{
+      const addJob= req.body;
+      const result = await jobsCollection.insertOne(addJob);
+      res.send(result);
+
+    })
+
+
+
 
 
 
