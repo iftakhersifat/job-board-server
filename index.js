@@ -36,7 +36,12 @@ async function run() {
     
     // jobs api
     app.get('/jobs', async (req, res)=>{
-        const cursor =jobsCollection.find();
+      const email = req.query.email;
+      let query={}
+      if(email){
+        query = {hr_email : email}
+      }
+        const cursor =jobsCollection.find(query);
         const result = await cursor.toArray();
         res.send(result); 
     })
@@ -77,6 +82,12 @@ async function run() {
   }
         res.send(result)
     })
+    // delete
+    app.delete("/applications/:id", async (req, res) => {
+    const id = req.params.id;
+    const result = await applicationCollection.deleteOne({ _id: new ObjectId(id) });
+    res.send(result);
+    });
 
 
 
@@ -87,6 +98,32 @@ async function run() {
       res.send(result);
 
     })
+    // delete add job 
+    app.delete("/jobs/:id", async (req, res) => {
+    const id = req.params.id;
+    const result = await jobsCollection.deleteOne({ _id: new ObjectId(id) });
+    res.send(result);
+    });
+
+  // ami j job create korlam oi job e koto jon apply korce (view applications)
+    app.get("/applications/job/:id", async(req,res)=>{
+    const id = req.params.id;
+    const query= {id: id};
+    const result=await applicationCollection.find(query).toArray();
+    res.send(result)
+    })
+
+  // status update jara job apply korce tader status update kora
+  app.patch("/applications/:id", async (req, res) => {
+  const id = req.params.id;
+  const { status } = req.body;
+  const filter = { _id: new ObjectId(id) };
+  const updateDoc = {
+    $set: { status: status }
+  };
+  const result = await applicationCollection.updateOne(filter, updateDoc);
+  res.send(result);
+  });
 
 
 
