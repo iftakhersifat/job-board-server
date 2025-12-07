@@ -48,41 +48,65 @@ async function run() {
     // get specific job by string id
     app.get('/jobs/:id', async (req, res) => {
     const id = req.params.id;
-    const query = { _id: id };
+    const query = { _id: new ObjectId(id) };
     const result = await jobsCollection.findOne(query);
     res.send(result);
     });
 
 
     // job apply (application)
-    app.post("/applications", async(req, res)=>{
-        const application = req.body;
-        const result = await applicationCollection.insertOne(application);
-        res.send(result);
-    })
+    // job apply (application)
+app.post("/applications", async (req, res) => {
+  const { applicantUID, applicantEmail, applicant, resume, id: jobId } = req.body;
+
+  if (!applicantUID || !applicantEmail || !applicant || !jobId) {
+    return res.status(400).send({ message: "Missing required fields" });
+  }
+
+  const application = {
+    applicantUID,
+    applicantEmail,
+    applicant,
+    resume,
+    id: jobId, // job ID
+    status: "Pending", // default status
+    appliedAt: new Date()
+  };
+
+  try {
+    const result = await applicationCollection.insertOne(application);
+    res.send(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ message: "Failed to submit application" });
+  }
+});
+
+
 
     // application j gula mongoDB te send korce segula server e show koraite cai
     app.get("/applications", async(req, res)=>{
-        const email = req.query.email;
-        const query = { applicant: email }; 
-        const result = await applicationCollection.find(query).toArray(); 
-        // add data from application collection
-      for (const application of result) {
-    const jobId = application.id; 
-    const job = await jobsCollection.findOne({ _id: new ObjectId(jobId) });
-    
-    if (job) {
-      application.company = job.company;
-      application.title = job.title;
-      application.company_logo = job.company_logo;
-      application.location = job.location;
-      application.jobType = job.jobType;
-      application.category = job.category;
-      application.status = job.status;
+    const email = req.query.email;
+    const query = { applicantEmail: email }; // ✅ correct field
+    const result = await applicationCollection.find(query).toArray(); 
+
+    // add job data
+    for (const application of result) {
+        const jobId = application.id; 
+        const job = await jobsCollection.findOne({ _id: new ObjectId(jobId) });
+        if (job) {
+            application.company = job.company;
+            application.title = job.title;
+            application.company_logo = job.company_logo;
+            application.location = job.location;
+            application.jobType = job.jobType;
+            application.category = job.category;
+            application.status = application.status || "Pending"; // keep application status
+        }
     }
-  }
-        res.send(result)
-    })
+    res.send(result)
+});
+
     // delete
     app.delete("/applications/:id", async (req, res) => {
     const id = req.params.id;
