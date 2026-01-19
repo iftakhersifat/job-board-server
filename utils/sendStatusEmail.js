@@ -10,7 +10,6 @@ async function sendStatusEmail(recipientEmail, status, applicantName = "Applican
       },
     });
 
-    // Define professional message based on status
     let subject = "Update on Your Job Application";
     let message = "";
 
